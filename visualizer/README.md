@@ -10,13 +10,13 @@ sols.json       the 30 Python solutions (shown on the page)
 test_solutions.py   runs every solution against the test cases in problems.json
 test.js         node test.js probs1.js probs2.js probs3.js  -> runs every scene, checks layout bounds
 captions.json   hash -> spoken text, one entry per animation step (made by `node dump.js`)
-gen_audio.py    renders captions.json to audio/<hash>.mp3
+gen_audio.py    renders captions.json to audio/<hash>.mp3 (Kokoro or ElevenLabs)
+pack_audio.py   joins the clips into one sprite per problem in dist/audio/
 ```
 
 ## Narration audio
 
-The page plays `audio/<hash>.mp3` for each step; `<hash>` is `fnv(speakText(caption))` from `src/layout.js`.
-If a clip is missing it falls back to the browser's built-in voice.
+Each step's caption is rendered to `audio/<hash>.mp3` (`<hash>` is `fnv(speakText(caption))` from `src/layout.js`). `pack_audio.py` joins them into one sprite per problem (`dist/audio/pNN.mp3` plus a manifest embedded by `build.py`), and the page decodes the sprite with Web Audio. If a clip is missing it falls back to the browser's built-in voice.
 
 ```bash
 node dump.js                      # refresh captions.json after editing any caption text
@@ -30,4 +30,4 @@ ELEVENLABS_API_KEY=... ELEVENLABS_VOICE_ID=... python gen_audio.py elevenlabs
 ```
 
 Only missing clips are generated, so changing one caption re-renders one clip. Needs `ffmpeg` on the path.
-Serve `dist/index.html` with `audio/` beside it (copy or symlink `audio/` into `dist/`).
+Then `python pack_audio.py && python build.py`, and serve `dist/` (index.html plus audio/).

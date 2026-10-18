@@ -3,3 +3,4 @@ audio_tmp/
 voices*.bin
 node_modules/
 __pycache__/
+dist/audio/

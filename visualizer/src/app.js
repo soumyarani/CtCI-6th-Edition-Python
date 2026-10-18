@@ -51,7 +51,7 @@ function showProblem(id,auto=true){
   if(auto){setTimeout(play,500)}
 }
 document.addEventListener('click',e=>{
-  if(e.target.id==='voice'){voiceOn=!voiceOn;setVoiceLabel();if(!voiceOn){hush();return}if(playing){clearTimeout(timer);tick()}else sayNow(speakText(frames[fi].cap));return}
+  if(e.target.id==='voice'){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(_){}}if(actx&&actx.state==='suspended')actx.resume();voiceOn=!voiceOn;setVoiceLabel();if(!voiceOn){hush();return}if(playing){clearTimeout(timer);tick()}else sayNow(speakText(frames[fi].cap));return}
   const ib=e.target.closest('#index button');if(ib)return showProblem(+ib.dataset.id);
   const sb=e.target.closest('#scenes button');if(sb){loadScene(+sb.dataset.s);setTimeout(play,300);return}
   if(e.target.id==='play'){playing?stop():play();return}
@@ -68,18 +68,22 @@ $('#picker').addEventListener('change',e=>showProblem(+e.target.value));
 document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
   if(e.key==='ArrowRight'){stop();setFrame(fi+1)}else if(e.key==='ArrowLeft'){stop();setFrame(fi-1)}else if(e.key===' '){e.preventDefault();playing?stop():play()}});
 
-/* ===== voice: pre-rendered clips (audio/<fnv hash of spoken text>.mp3), made by gen_audio.py ===== */
-let clip=null;
+/* ===== voice: one pre-rendered Kokoro sprite per problem (made by gen_audio.py + pack_audio.py), decoded with Web Audio ===== */
+let actx=null,src=null;const bufs={};
+function getBuf(pid){
+  if(bufs[pid])return bufs[pid];const m=AUDIO[pid];if(!m)return Promise.reject(new Error('no audio'));
+  return bufs[pid]=fetch(m.file).then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>actx.decodeAudioData(b,res,rej)));
+}
 function sayNow(text,done){
   const t=++vtoken;hushAudio();
   let fired=false;const fin=()=>{if(fired)return;fired=true;if(t===vtoken&&done)done()};
-  const a=new Audio('audio/'+fnv(text)+'.mp3');clip=a;a.playbackRate=Math.min(1.6,Math.max(.8,speed>1?1+(speed-1)*.35:speed>.6?1:.9));
-  a.onended=fin;
-  a.onerror=()=>{ // clip missing: fall back to the browser's own voice so narration never goes silent
-    if(window.speechSynthesis&&t===vtoken){const u=new SpeechSynthesisUtterance(text);u.rate=Math.min(1.5,speed);u.onend=fin;u.onerror=fin;speechSynthesis.cancel();speechSynthesis.speak(u)}else fin()};
-  const p=a.play();if(p&&p.catch)p.catch(()=>{});
+  const clipInfo=AUDIO[pid]&&AUDIO[pid].clips[fnv(text)];
+  const fallback=()=>{if(t!==vtoken)return;if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(text);u.rate=Math.min(1.5,speed);u.onend=fin;u.onerror=fin;speechSynthesis.cancel();speechSynthesis.speak(u)}else fin()};
+  if(!clipInfo||!actx)return fallback();
+  getBuf(pid).then(buf=>{if(t!==vtoken)return;const s=actx.createBufferSource();s.buffer=buf;s.playbackRate.value=Math.min(1.6,speed>1?1+(speed-1)*.4:Math.max(.85,speed));
+    s.connect(actx.destination);s.onended=()=>{if(src===s)src=null;fin()};src=s;s.start(0,clipInfo[0],clipInfo[1])},fallback);
 }
-function hushAudio(){if(clip){clip.onended=null;clip.onerror=null;try{clip.pause()}catch(e){}clip=null}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
+function hushAudio(){if(src){const s=src;src=null;s.onended=null;try{s.stop()}catch(e){}}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
 function hush(){vtoken++;hushAudio()}
 function setVoiceLabel(){$('#voice').textContent=voiceOn?'Voice: on':'Voice: off';$('#voice').setAttribute('aria-pressed',voiceOn)}
 
