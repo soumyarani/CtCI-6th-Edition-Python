@@ -1,0 +1,5 @@
+audio_tmp/
+*.onnx
+voices*.bin
+node_modules/
+__pycache__/

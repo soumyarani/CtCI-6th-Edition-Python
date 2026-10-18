@@ -1,0 +1,38 @@
+<title>Thirty Problems in Motion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;1,400&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/*CSS*/
+</style>
+<div class="wrap">
+  <header class="head"><h1>Thirty problems, drawn out</h1><p>Each one is a short animation you can pause and step through, then the way of thinking, the corner cases that break it, and Python that passes your test cases.</p></header>
+  <div class="layout">
+    <nav class="index" id="index" aria-label="Problems"></nav>
+    <main class="main">
+      <select class="picker" id="picker" aria-label="Choose a problem"></select>
+      <div class="ptitle" id="ptitle"></div>
+      <div class="desc" id="desc"></div>
+      <div class="scenes" id="scenes" role="group" aria-label="Examples"></div>
+      <div class="player">
+        <div class="stage" id="stage"><div class="stage-in" id="stageIn"></div></div>
+        <div class="caption" id="cap" aria-live="polite"></div>
+        <div class="controls">
+          <div class="btns"><button class="ib" id="first" aria-label="Restart">⏮</button><button class="ib" id="prev" aria-label="Previous step">◀</button><button class="ib main" id="play">▶ Play</button><button class="ib" id="next" aria-label="Next step">▶</button></div>
+          <input class="scrub" id="scrub" type="range" min="0" max="0" value="0" aria-label="Step">
+          <span class="counter" id="ctr">1 / 1</span>
+          <button class="ib vbtn" id="voice" aria-pressed="false" title="Narrate each step with an open-source voice (Kokoro)">Voice: off</button><select class="speed" id="speed" aria-label="Speed"><option value="0.6">0.6×</option><option value="1" selected>1×</option><option value="1.6">1.6×</option><option value="2.5">2.5×</option></select>
+        </div>
+      </div>
+      <div class="cols">
+        <section class="card box think"><h3>How to think about it</h3><div id="think"></div></section>
+        <section class="card box"><h3>Corner cases</h3><div class="edges" id="edges"></div></section>
+      </div>
+      <section class="card codecard"><div class="codehead"><h3>Python</h3><button class="copy" id="copy">Copy</button></div><pre class="py"><code id="code"></code></pre></section>
+      <p class="foot">Step with ← → or the slider, play or pause with space. Every solution was run against the test cases in your 30-day set.</p>
+    </main>
+  </div>
+</div>
+<script>
+/*JS*/
+</script>
